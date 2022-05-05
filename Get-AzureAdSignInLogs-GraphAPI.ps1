@@ -1,3 +1,11 @@
+[System.Net.ServicePointManager]::SecurityProtocol = 'TLS12'
+
+$ClientSecret = ""
+$TenantId = ""
+$AppId = ""
+
+$global:Stopwatch = $null
+$global:Token = $null
 function Connect-GraphApiWithClientSecret {
     Write-Host "Authenticating to Graph API"
     $Body = @{    
@@ -20,14 +28,26 @@ function Get-AzureAdSignInLogs-GraphApi {
     $ApiUrl = "https://graph.microsoft.com/v1.0/auditLogs/signIns"
     While ($GetMoreRecords -eq $true) {
         $LoopIteration++
-        $ApiCallResponse = (Invoke-RestMethod -Headers @{Authorization = "Bearer $Token"} -Uri $ApiUrl -Method Get)
+        $ApiCallResponse = $null
+        if($global:Stopwatch -eq $null -or $global:Stopwatch.elapsed.minutes -gt '55'){
+            $global:Token = Connect-GraphApiWithClientSecret
+        }
+        try {
+            $ApiCallResponse = (Invoke-RestMethod -Headers @{Authorization = "Bearer $Token"} -Uri $ApiUrl -Method Get)
+        }
+        catch {
+            Start-Sleep -Seconds 10
+            $ApiCallResponse = (Invoke-RestMethod -Headers @{Authorization = "Bearer $Token"} -Uri $ApiUrl -Method Get)
+        }
         $CurrentBatchCount = $ApiCallResponse.Value.Count
         $TotalProcessedCount += $CurrentBatchCount
-        $apiUrl = $ApiCallResponse.'@odata.nextLink'
+        $ApiUrl = $null
+        $ApiUrl = $ApiCallResponse.'@odata.nextLink'
         If ($null -eq $apiUrl) {
-        $GetMoreRecords = $false
-        } else {
-        $GetMoreRecords = $true
+            $GetMoreRecords = $false
+        } 
+        else {
+            $GetMoreRecords = $true
         }
         [System.Collections.Generic.List[psobject]]$LogBatch = @()
         [System.Collections.Generic.List[psobject]]$LogBatch = $ApiCallResponse.Value
@@ -40,11 +60,6 @@ function Get-AzureAdSignInLogs-GraphApi {
     return $LogRecords
 }
 
-$TenantId = ""
-$AppId = ""
-$ClientSecret = ""
-
-$Token = Connect-GraphApiWithClientSecret
 $AzureAdLogs = Get-AzureAdSignInLogs-GraphApi
 
-$AzureAdLogs
+$AzureAdLogs | Export-CSV -Path "C:\Temp\AzureAdSignInLogs.csv" -NoTypeInformation
