@@ -23,9 +23,9 @@ function Connect-GraphApiWithClientSecret {
         Scope         = "https://graph.microsoft.com/.default"
         client_Id     = $AppId
         Client_Secret = $ClientSecret
-        } 
+    }
     $ConnectGraph = Invoke-RestMethod -Uri "https://login.microsoftonline.com/$TenantId/oauth2/v2.0/token" -Method POST -Body $Body
-    $Global:stopwatch =  [system.diagnostics.stopwatch]::StartNew()	
+    $Global:Stopwatch =  [system.diagnostics.stopwatch]::StartNew()	
     return $ConnectGraph.access_token
 }
 
