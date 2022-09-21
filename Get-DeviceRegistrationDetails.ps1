@@ -49,7 +49,7 @@ function Get-GraphDeviceRegistrationDetails ($DeviceOwner) {
         return Write-Host $RestError -ForegroundColor Red 
     }
 }
-
+Connect-AzureAD
 $DeviceRegistrations = Get-AzureADUser -All $true  | ForEach-Object {
     if($global:Stopwatch -eq $null -or $global:Stopwatch.elapsed.minutes -gt '55'){
         $global:Token = Connect-GraphApiWithClientSecret
