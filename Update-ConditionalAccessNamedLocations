@@ -10,7 +10,7 @@ $AADNamedLocationPolicy = $AADNamedLocationPolicies | Where-Object {$_.DisplayNa
 $NewIpRanges = @("1.1.1.1/32", "1.1.2.2/32")
 
 #Object that will be used to update Named Location Policy
-$UpdatedIpRangeList = $AADNamedLocationPolicy.IpRanges.cidraddress
+[array]$UpdatedIpRangeList = $AADNamedLocationPolicy.IpRanges.cidraddress
 
 foreach ($IpRange in $NewIpRanges) {
     #Add each IP Range from the $NewIpRanges variable to the $UpdatedIpRangeList variable
