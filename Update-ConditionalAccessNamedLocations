@@ -1,0 +1,21 @@
+Connect-AzureAD
+
+#Get All Named Locations Policies
+$AADNamedLocationPolicies = Get-AzureADMSNamedLocationPolicy
+
+#Get Named Location Policy that matches the DisplayName being targeted
+$AADNamedLocationPolicy = $AADNamedLocationPolicies | Where-Object {$_.DisplayName -eq "TestLocations"}
+
+#IP Ranges to Add to Named Location Policy
+$NewIpRanges = @("1.1.1.1/32", "1.1.2.2/32")
+
+#Object that will be used to update Named Location Policy
+$UpdatedIpRangeList = $AADNamedLocationPolicy.IpRanges.cidraddress
+
+foreach ($IpRange in $NewIpRanges) {
+    #Add each IP Range from the $NewIpRanges variable to the $UpdatedIpRangeList variable
+    $UpdatedIpRangeList += $IpRange
+}
+
+#Updates the Named Location Policy with the UpdateIpRangeList variable that contains the original and added IP Ranges. 
+Set-AzureADMSNamedLocationPolicy -PolicyId $AADNamedLocationPolicy.Id -IpRanges $UpdatedIpRangeList  -OdataType "#microsoft.graph.ipNamedLocation" 
